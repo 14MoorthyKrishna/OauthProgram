@@ -4,20 +4,41 @@ Microsoft.Owin.Cors
 Microsoft.AspNet.WebApi.Core
 Microsoft.AspNet.WebApi.Owin
 
-public static async Task<string> GetAuthorizeToken()  
-{  
-        string responseObj = string.Empty;  
-        using (var client = new HttpClient())  
-        {  
-                client.BaseAddress = new Uri("http://localhost:3097/");  
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));  
-                HttpResponseMessage response = new HttpResponseMessage();  
-                List<KeyValuePair<string, string>> allIputParams = new List<KeyValuePair<string, string>>();  
-                HttpContent requestParams = new FormUrlEncodedContent(allIputParams);  
-                response = await client.PostAsync("Token", requestParams).ConfigureAwait(false);  
-                if (response.IsSuccessStatusCode)  
-                {  
-                }  
-            }  
-            return responseObj;  
-        }  
+namespace Books.ListMyLibrary
+{
+    internal class Program
+    {
+        static void Main(string[] args)
+        {
+            try
+            {
+                new Program().Run().Wait();
+            }
+            catch (AggregateException ex)
+            {
+                foreach (var e in ex.InnerExceptions)
+                {
+                    Console.WriteLine("ERROR: " + e.Message);
+                }
+            }
+        }
+        private async Task Run()
+        {
+            UserCredential credential;
+            using (var stream = new FileStream("client_secrets.json", FileMode.Open, FileAccess.Read))
+            {
+                credential = await GoogleWebAuthorizationBroker.AuthorizeAsync(
+                    GoogleClientSecrets.Load(stream).Secrets,
+                    new[] { BooksService.Scope.Books },
+                    "user", CancellationToken.None, new FileDataStore("Books.ListMyLibrary"));
+            }
+            var service = new BooksService(new BaseClientService.Initializer()
+                {
+                    HttpClientInitializer = credential,
+                    ApplicationName = "Books API Sample",
+                });
+            var bookshelves = await service.Mylibrary.Bookshelves.List().ExecuteAsync();
+        }
+    }
+}
+  
