@@ -3,9 +3,9 @@ Microsoft.Owin.Security.OAuth
 Microsoft.Owin.Cors
 Microsoft.AspNet.WebApi.Core
 Microsoft.AspNet.WebApi.Owin
-
-namespace Books.ListMyLibrary
+namespace OauthSimpleProgram
 {
+   
     internal class Program
     {
         static void Main(string[] args)
@@ -22,6 +22,7 @@ namespace Books.ListMyLibrary
                 }
             }
         }
+
         private async Task Run()
         {
             UserCredential credential;
@@ -32,11 +33,13 @@ namespace Books.ListMyLibrary
                     new[] { BooksService.Scope.Books },
                     "user", CancellationToken.None, new FileDataStore("Books.ListMyLibrary"));
             }
+
             var service = new BooksService(new BaseClientService.Initializer()
                 {
                     HttpClientInitializer = credential,
                     ApplicationName = "Books API Sample",
                 });
+
             var bookshelves = await service.Mylibrary.Bookshelves.List().ExecuteAsync();
         }
     }
